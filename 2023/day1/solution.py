@@ -42,7 +42,33 @@ def find_first_and_last_digits_including_text(line: str) -> int:
     return int(f'{first}{last}')
 
 
-def part_one(filename):
+def part_one(filename: str) -> int:
+    """
+    --- Day 1: Trebuchet?! ---
+
+    You try to ask why they can't just use a weather machine ("not powerful
+    enough") and where they're even sending you ("the sky") and why your map
+    looks mostly blank ("you sure ask a lot of questions") and hang on did
+    you  just say the sky ("of course, where do you think snow comes from")
+    when you realize that the Elves are already loading you into a trebuchet
+    ("please hold still, we need to strap you in").
+
+    As they're making the final adjustments, they discover that their
+    calibration document (your puzzle input) has been amended by a very
+    young Elf who was apparently just excited to show off her art skills.
+    Consequently, the Elves are having trouble reading the values on the document.
+
+    The newly-improved calibration document consists of lines of text; each
+    line originally contained a specific calibration value that the Elves
+    now need to recover. On each line, the calibration value can be found by
+    combining the first digit and the last digit (in that order) to form a
+    single two-digit number.
+
+
+    Consider your entire calibration document. What is the sum of all of the calibration values?
+
+    Your puzzle answer was 55712.
+    """
     with open(filename) as file:
         sum_of_calibration_values = 0
         while line := file.readline().strip():
@@ -52,7 +78,17 @@ def part_one(filename):
     return sum_of_calibration_values
 
 
-def part_two(filename):
+def part_two(filename: str) -> int:
+    """
+    our calculation isn't quite right. It looks like some of the digits are
+    actually spelled out with letters: one, two, three, four, five, six,
+    seven, eight, and nine also count as valid "digits".
+
+    Equipped with this new information, you now need to find the real first
+    and last digit on each line.
+
+    What is the sum of all calibration values?
+    """
     with open(filename) as file:
         sum_of_calibration_values = 0
         while line := file.readline().strip():
@@ -61,10 +97,10 @@ def part_two(filename):
 
     return sum_of_calibration_values
 
+
 if __name__ == '__main__':
     filename = 'input.txt'
     sum_of_calibration_values = part_one(filename)
     sum_of_calibration_values_p2 = part_two(filename)
     print(sum_of_calibration_values)
     print(sum_of_calibration_values_p2)
-
