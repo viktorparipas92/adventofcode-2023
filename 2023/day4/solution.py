@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 
 
 class Card:
@@ -9,7 +10,7 @@ class Card:
         :param line: the line of text to parse
         """
         card_id, line = line.strip().split(': ')
-        self.card_number = re.search(r'(\d+)', card_id).group()
+        self.card_number = int(re.search(r'(\d+)', card_id).group())
 
         winning_numbers, your_numbers = line.split(' | ')
         self.winning_numbers = {
@@ -26,13 +27,20 @@ class Card:
     def __str__(self):
         return self.__repr__()
 
-    def evaluate(self):
-        matches = sum(
-            1 for yn in self.your_numbers if yn in self.winning_numbers
-        )
-        return 2 ** (matches - 1) if matches else 0
+    @property
+    def matches(self) -> list[int]:
+        return [yn for yn in self.your_numbers if yn in self.winning_numbers]
 
+    @property
+    def points(self) -> int:
+        num_matches: int = len(self.matches)
+        return 2 ** (num_matches - 1) if num_matches else 0
 
+    def get_copies(self) -> set[int]:
+        num_matches: int = len(self.matches)
+        start = self.card_number + 1
+        end = start + num_matches
+        return set(range(start, end))
 
 
 def part_one(filename):
@@ -78,18 +86,46 @@ def part_one(filename):
     Take a seat in the large pile of colorful cards. How many points are they worth in total?
     """
     cards: list[Card] = parse_cards(filename)
-    total_score = sum(card.evaluate() for card in cards)
+    total_score = sum(card.points for card in cards)
     return total_score
 
 
-def parse_cards(filename: str) -> list[Card]:
+def part_two(filename):
     """
-    Parse the cards from the input file.
+    --- Part Two ---
+    Just as you're about to report your findings to the Elf, one of you
+    realizes that the rules have actually been printed on the back of every
+    card this whole time.
 
-    :param filename: the name of the file to parse
-    :return: a list of cards
+    There's no such thing as "points". Instead, scratchcards only cause you
+    to win more scratchcards equal to the number of winning numbers you have.
+
+    Specifically, you win copies of the scratchcards below the winning card
+    equal to the number of matches. So, if card 10 were to have 5 matching
+    numbers, you would win one copy each of cards 11, 12, 13, 14, and 15.
+
+    Copies of scratchcards are scored like normal scratchcards and have the
+    same card number as the card they copied. So, if you win a copy of card
+    10 and it has 5 matching numbers, it would then win a copy of the same
+    cards that the original card 10 won: cards 11, 12, 13, 14, and 15. This
+    process repeats until none of the copies cause you to win any more cards.
+    (Cards will never make you copy a card past the end of the table.)
+
+    Process all of the original and copied scratchcards until no more
+    scratchcards are won. Including the original set of scratchcards,
+    how many total scratchcards do you end up with?
     """
-    # Use list comprehension
+    cards: list[Card] = parse_cards(filename)
+    card_counts = {card.card_number: 1 for card in cards}
+    for card in cards:
+        copies = card.get_copies()
+        for copy in copies:
+            card_counts[copy] += card_counts[card.card_number]
+
+    return sum(card_counts.values())
+
+
+def parse_cards(filename: str) -> list[Card]:
     with open(filename) as file:
         cards = [Card(line) for line in file.readlines()]
 
@@ -99,4 +135,6 @@ def parse_cards(filename: str) -> list[Card]:
 if __name__ == '__main__':
     filename = 'input.txt'
     total_score = part_one(filename)
+    total_num_cards = part_two(filename)
     print(total_score)
+    print(total_num_cards)
