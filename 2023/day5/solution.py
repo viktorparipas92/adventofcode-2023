@@ -1,4 +1,5 @@
 import re
+from typing import Literal
 
 
 def part_one(filename):
@@ -63,15 +64,35 @@ def part_one(filename):
     return min(locations)
 
 
-def parse_input(filename: str):
+def part_two(filename):
+    """
+    --- Part Two ---
+    Everyone will starve if you only plant such a small number of seeds.
+    Re-reading the almanac, it looks like the seeds: line actually describes
+    ranges of seed numbers.
+
+    The values on the initial seeds: line come in pairs. Within each pair,
+    the first value is the start of the range and the second value is the
+    length of the range. So, in the first line of the example above:
+
+    Consider all the initial seed numbers listed in the ranges on the
+    first line of the almanac. What is the lowest location number that
+    corresponds to any of the initial seed numbers?
+    """
+    almanac_v2 = parse_input(filename, part=2)
+    locations: list[int] = almanac_v2.get_locations()
+    return min(locations)
+
+
+def parse_input(filename: str, part: Literal[1, 2] = 1) -> 'Almanac':
     with open(filename) as file:
         contents = file.read()
 
-    return Almanac(contents)
+    return Almanac(contents, part=part)
 
 
 class Almanac:
-    def __init__(self, contents: str):
+    def __init__(self, contents: str, part: Literal[1, 2] = 1):
         (
             seeds,
             seed_soil_map,
@@ -82,7 +103,11 @@ class Almanac:
             temperature_humidity_map,
             humidity_location_map,
         ) = contents.split('\n\n')
-        self.seeds = SeedList(seeds)
+        if part == 1:
+            self.seeds = SeedList(seeds)
+        elif part == 2:
+            self.seeds = SeedRange(seeds)
+
         self.seed_soil_map = Map(seed_soil_map)
         self.soil_fertilizer_map = Map(soil_fertilizer_map)
         self.fertilizer_water_map = Map(fertilizer_water_map)
@@ -141,7 +166,30 @@ class SeedList:
         return self.seed_list[item]
 
 
+class SeedRange:
+    def __init__(self, seeds_input: str):
+        if seeds_input.startswith('seeds: '):
+            seeds: str = seeds_input.split(': ')[1]
+            seed_ranges: list[int] = [int(seed) for seed in seeds.split(' ')]
+            self.seed_list = []
+            start = -1
+            for i, number in enumerate(seed_ranges):
+                if i % 2 == 0:
+                    start = number
+                else:
+                    length = number
+                    self.seed_list.extend(range(start, start + length))
+        else:
+            raise ValueError('This is not a valid seed list.')
+
+    def __getitem__(self, item):
+        return self.seed_list[item]
+
+
 if __name__ == '__main__':
     filename = 'input.txt'
     minimum_location = part_one(filename)
+    print(minimum_location)
+
+    minimum_location = part_two(filename)
     print(minimum_location)
